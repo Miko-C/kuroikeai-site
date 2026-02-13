@@ -4,45 +4,73 @@ import PlatformLinkCard from '../components/PlatformLinkCard.astro';
 import { platforms } from '../data/platforms';
 import { site } from '../config/site';
 
-const linksBackground = '/visuals/saikusakiyomu.png';
+const linksBackground = '/visuals/home.png';
+const accentCat = '/visuals/blackcatgreeting.png';
+const accentDog = '/visuals/dog-handsup.png';
 ---
 
 <Layout title={`${site.title} | Links`} description="公式リンク一覧と説明">
-  <section class="links-hero" style={`background-image: url('${linksBackground}')`}>
-    <div class="hero-overlay">
+  <section class="links-panel" style={`background-image: url('${linksBackground}')`} aria-label="リンク一覧セクション">
+    <img class="accent accent-cat" src={accentCat} alt="" aria-hidden="true" loading="lazy" />
+    <img class="accent accent-dog" src={accentDog} alt="" aria-hidden="true" loading="lazy" />
+
+    <div class="panel-overlay">
       <p class="eyebrow">Official Links</p>
       <h1>Links</h1>
-      <p>
+      <p class="lead">
         各プラットフォームの役割と最新導線をまとめています。URLは環境変数 `PUBLIC_*_URL` から取得し、未設定時は「URL未設定」と表示します。
       </p>
-    </div>
-  </section>
 
-  <section class="cards-stack" aria-label="プラットフォームカード一覧">
-    {platforms.map((platform) => (
-      <PlatformLinkCard platform={platform} />
-    ))}
+      <div class="cards-stack" aria-label="プラットフォームカード一覧">
+        {platforms.map((platform) => (
+          <PlatformLinkCard platform={platform} />
+        ))}
+      </div>
+    </div>
   </section>
 </Layout>
 
 <style>
-  .links-hero {
+  .links-panel {
+    position: relative;
     border-radius: var(--radius-lg);
-    min-height: clamp(260px, 42vh, 440px);
-    border: 1px solid rgba(191, 219, 244, 0.26);
+    border: 1px solid rgba(191, 219, 244, 0.28);
     overflow: hidden;
     background-size: cover;
     background-position: center;
     box-shadow: 0 14px 36px rgba(0, 0, 0, 0.52), 0 0 22px rgba(137, 234, 255, 0.13);
   }
 
-  .hero-overlay {
-    min-height: inherit;
+  .accent {
+    position: absolute;
+    z-index: 1;
+    pointer-events: none;
+    filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+  }
+
+  .accent-cat {
+    top: 1rem;
+    right: 1rem;
+    width: min(240px, 34vw);
+    opacity: 0.8;
+  }
+
+  .accent-dog {
+    bottom: 1rem;
+    left: 1rem;
+    width: min(220px, 30vw);
+    opacity: 0.72;
+  }
+
+  .panel-overlay {
+    position: relative;
+    z-index: 2;
+    min-height: clamp(520px, 72vh, 980px);
     padding: clamp(1.1rem, 4vw, 2rem);
     display: grid;
-    align-content: end;
-    gap: 0.75rem;
-    background: linear-gradient(to top, rgba(4, 7, 12, 0.9) 20%, rgba(4, 7, 12, 0.35) 70%);
+    align-content: start;
+    gap: 0.9rem;
+    background: linear-gradient(to bottom, rgba(4, 7, 12, 0.78), rgba(4, 7, 12, 0.62));
   }
 
   .eyebrow {
@@ -59,7 +87,7 @@ const linksBackground = '/visuals/saikusakiyomu.png';
     letter-spacing: 0.03em;
   }
 
-  p {
+  .lead {
     margin: 0;
     max-width: 52rem;
     line-height: 1.8;
@@ -67,8 +95,24 @@ const linksBackground = '/visuals/saikusakiyomu.png';
   }
 
   .cards-stack {
-    margin-top: 1rem;
+    margin-top: 0.3rem;
     display: grid;
     gap: 0.9rem;
+  }
+
+  @media (max-width: 720px) {
+    .accent-cat {
+      width: min(170px, 36vw);
+      top: 0.6rem;
+      right: 0.5rem;
+      opacity: 0.66;
+    }
+
+    .accent-dog {
+      width: min(145px, 34vw);
+      left: 0.5rem;
+      bottom: 0.5rem;
+      opacity: 0.58;
+    }
   }
 </style>

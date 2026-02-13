@@ -38,17 +38,21 @@ if (rssUrl) {
     entries.length > 0 ? (
       <div class="note-list-wrap">
         {entries.map((entry) => (
-          <article class="note-card">
-            <div class="note-wrap">
+          <div class="note-item">
+            <article class="note-card">
+              <div class="note-wrap">
               <iframe
                 title={`note article ${entry.noteId}`}
                 src={`https://note.com/embed/notes/${entry.noteId}`}
                 loading="lazy"
                 referrerpolicy="strict-origin-when-cross-origin"
               ></iframe>
+              </div>
+            </article>
+            <div class="note-item-footer">
+              <a href={entry.link} target="_blank" rel="noreferrer">この記事を開く</a>
             </div>
-            <a href={entry.link} target="_blank" rel="noreferrer">この記事を開く</a>
-          </article>
+          </div>
         ))}
       </div>
     ) : (
@@ -72,43 +76,49 @@ if (rssUrl) {
     width: min(780px, 100%);
     margin: 0 auto;
     display: grid;
-    gap: 1.15rem;
+    gap: 1.6rem;
+  }
+
+  .note-item {
+    display: grid;
+    gap: 0.9rem;
   }
 
   .note-card {
     display: grid;
-    justify-items: center;
-    grid-template-rows: 1fr auto;
-    align-items: center;
-    gap: 0.6rem;
     width: min(700px, 100%);
     margin: 0 auto;
-    padding: 0.75rem;
+    padding: 0;
     border-radius: 14px;
     border: 1px solid rgba(191, 220, 247, 0.3);
     background: rgba(4, 8, 14, 0.44);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+    overflow: hidden;
   }
 
   .note-wrap {
-    width: min(640px, 100%);
-    height: clamp(210px, 30vw, 280px);
-    display: grid;
-    place-items: center;
-    border-radius: 12px;
+    width: 100%;
+    line-height: 0;
     overflow: hidden;
-    border: 1px solid rgba(191, 220, 247, 0.34);
-    background: rgba(4, 8, 14, 0.76);
+    border-radius: inherit;
   }
 
   .note-wrap iframe {
+    display: block;
     width: 100%;
-    height: 100%;
+    max-width: 100%;
+    height: clamp(156px, 17.3vw, 196px);
     border: 0;
   }
 
-  .note-card a {
-    justify-self: start;
+  .note-item-footer {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 0.75rem 0.9rem;
+  }
+
+  .note-item-footer a {
     display: inline-block;
     padding: 0.35rem 0.58rem;
     border-radius: 999px;

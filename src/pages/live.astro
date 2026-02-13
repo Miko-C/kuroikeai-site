@@ -2,81 +2,62 @@
 import Layout from '../layouts/Layout.astro';
 import { links, site, visuals } from '../config/site';
 
-interface LiveCache {
-  expiresAt: number;
-  liveVideoId: string | null;
-}
-
 const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID?.trim() ?? '';
+const channelUrl = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_URL?.trim() ?? import.meta.env.PUBLIC_YOUTUBE_URL?.trim() ?? '';
+const siteOrigin = import.meta.env.PUBLIC_SITE_ORIGIN?.trim() ?? '';
 const fallbackVideoId =
   import.meta.env.PUBLIC_LIVE_FALLBACK_YT_VIDEO_ID?.trim() ??
   import.meta.env.PUBLIC_HOME_FEATURED_YT_VIDEO_ID?.trim() ??
   '';
 const youtubeApiKey = import.meta.env.YOUTUBE_API_KEY?.trim() ?? '';
 
-let selectedVideoId = fallbackVideoId;
-let isLive = false;
+let liveVideoId: string | null = null;
 
-const cacheKey = '__kuroike_live_cache_v1';
-const now = Date.now();
-const ttlMs = 60_000;
-
-const cacheStore = globalThis as typeof globalThis & { [cacheKey]?: LiveCache };
-const cached = cacheStore[cacheKey];
-
-const fetchLiveVideoId = async () => {
-  if (!channelId || !youtubeApiKey) {
-    return null;
-  }
-
+if (channelId && youtubeApiKey) {
   const endpoint = new URL('https://www.googleapis.com/youtube/v3/search');
-  endpoint.searchParams.set('part', 'snippet');
+  endpoint.searchParams.set('part', 'id');
   endpoint.searchParams.set('channelId', channelId);
   endpoint.searchParams.set('eventType', 'live');
   endpoint.searchParams.set('type', 'video');
+  endpoint.searchParams.set('order', 'date');
   endpoint.searchParams.set('maxResults', '1');
+  endpoint.searchParams.set('fields', 'items(id/videoId)');
   endpoint.searchParams.set('key', youtubeApiKey);
 
   try {
     const response = await fetch(endpoint, {
       headers: { Accept: 'application/json' },
+      cache: 'no-store',
     });
-    if (!response.ok) {
-      return null;
+    if (response.ok) {
+      const json = (await response.json()) as {
+        items?: Array<{ id?: { videoId?: string } }>;
+      };
+      liveVideoId = json.items?.[0]?.id?.videoId?.trim() ?? null;
+    } else {
+      console.warn(`[/live] Failed to fetch live video id: ${response.status}`);
     }
-
-    const json = (await response.json()) as {
-      items?: Array<{ id?: { videoId?: string } }>;
-    };
-
-    return json.items?.[0]?.id?.videoId ?? null;
-  } catch {
-    return null;
+  } catch (error) {
+    console.warn('[/live] Live detection failed:', error);
   }
-};
-
-if (youtubeApiKey) {
-  let liveVideoId: string | null = null;
-
-  if (cached && cached.expiresAt > now) {
-    liveVideoId = cached.liveVideoId;
-  } else {
-    liveVideoId = await fetchLiveVideoId();
-    cacheStore[cacheKey] = {
-      expiresAt: now + ttlMs,
-      liveVideoId,
-    };
-  }
-
-  if (liveVideoId) {
-    selectedVideoId = liveVideoId;
-    isLive = true;
-  }
+} else if (channelId && !youtubeApiKey) {
+  console.warn('[/live] YOUTUBE_API_KEY is not configured. Live detection is disabled.');
 }
 
-const embedUrl = selectedVideoId
-  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(selectedVideoId)}`
+const isLive = Boolean(liveVideoId);
+
+const liveEmbedUrl = liveVideoId
+  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveVideoId)}`
+  : channelId
+    ? `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(channelId)}${siteOrigin ? `&origin=${encodeURIComponent(siteOrigin)}` : ''}`
+    : '';
+
+const recommendedEmbedUrl = fallbackVideoId
+  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(fallbackVideoId)}`
   : '';
+
+const initialMode: 'live' | 'recommended' = isLive ? 'live' : 'recommended';
+const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbedUrl : recommendedEmbedUrl || liveEmbedUrl;
 ---
 
 <Layout title={`${site.title} | Live`} description="配信ページ">
@@ -84,21 +65,37 @@ const embedUrl = selectedVideoId
     <div class="section-content">
       <p class="eyebrow">Live</p>
       <h1 class="hero-title">配信ページ</h1>
-      <p class="hero-sub">
-        {youtubeApiKey
-          ? isLive
-            ? '現在ライブ配信中の映像を表示しています。'
-            : '現在ライブ配信がないため、指定のフォールバック動画を表示しています。'
-          : 'ライブ自動検出は未設定です。配信中かどうかはYouTubeチャンネル側でも確認できます。'}
-      </p>
+      <p class="hero-sub">{isLive ? '現在ライブ配信中の映像を表示しています。' : '現在ライブ配信がないため、おすすめ動画を表示しています。'}</p>
 
       {
-        embedUrl ? (
-          <div class="live-player-wrap content-card">
-            <div class="player-shell">
+        initialEmbedUrl ? (
+          <div class="live-player-wrap content-card" data-live-panel>
+            <div class="switch-row" role="tablist" aria-label="Live表示切り替え">
+              <button
+                class={`switch-button${initialMode === 'live' ? ' is-active' : ''}`}
+                type="button"
+                data-mode="live"
+                role="tab"
+                aria-selected={initialMode === 'live' ? 'true' : 'false'}
+                disabled={!isLive}
+                aria-disabled={!isLive ? 'true' : 'false'}
+              >
+                ライブを見る
+              </button>
+              <button
+                class={`switch-button${initialMode === 'recommended' ? ' is-active' : ''}`}
+                type="button"
+                data-mode="recommended"
+                role="tab"
+                aria-selected={initialMode === 'recommended' ? 'true' : 'false'}
+              >
+                おすすめ動画を見る
+              </button>
+            </div>
+            <div class="player-shell" data-player-wrap>
               <iframe
                 title="Live Stream"
-                src={embedUrl}
+                src={initialEmbedUrl}
                 loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
@@ -112,7 +109,7 @@ const embedUrl = selectedVideoId
       }
 
       <div class="content-card links-card">
-        <a class="platform-link" href={links.youtube} target="_blank" rel="noreferrer">YouTube</a>
+        <a class="platform-link" href={channelUrl || links.youtube} target="_blank" rel="noreferrer">YouTube</a>
         <a class="platform-link" href={links.twitch} target="_blank" rel="noreferrer">Twitch</a>
         <a class="platform-link" href={links.kick} target="_blank" rel="noreferrer">Kick</a>
       </div>
@@ -120,9 +117,70 @@ const embedUrl = selectedVideoId
   </section>
 </Layout>
 
+<script type="module" define:vars={{ liveEmbedUrl, recommendedEmbedUrl, initialMode }}>
+  const panels = document.querySelectorAll('[data-live-panel]');
+
+  panels.forEach((panel) => {
+    const iframe = panel.querySelector('iframe');
+    const buttons = panel.querySelectorAll('[data-mode]');
+    if (!iframe || buttons.length === 0) return;
+
+    const setMode = (mode) => {
+      const nextSrc = mode === 'recommended' ? recommendedEmbedUrl || liveEmbedUrl : liveEmbedUrl || recommendedEmbedUrl;
+      if (nextSrc && iframe.getAttribute('src') !== nextSrc) {
+        iframe.setAttribute('src', nextSrc);
+      }
+
+      buttons.forEach((button) => {
+        const buttonMode = button.getAttribute('data-mode') || '';
+        const isActive = buttonMode === mode;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.hasAttribute('disabled')) return;
+        const mode = button.getAttribute('data-mode') === 'recommended' ? 'recommended' : 'live';
+        setMode(mode);
+      });
+    });
+
+    setMode(initialMode);
+  });
+</script>
+
 <style>
   .live-player-wrap {
+    display: grid;
+    gap: 0.8rem;
     padding: 0.7rem;
+  }
+
+  .switch-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .switch-button {
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.55);
+    color: #dbeeff;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+
+  .switch-button.is-active {
+    background: rgba(132, 233, 255, 0.2);
+    border-color: rgba(132, 233, 255, 0.58);
+  }
+
+  .switch-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
   }
 
   .player-shell {

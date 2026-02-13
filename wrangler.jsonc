@@ -3,42 +3,33 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "my-official-site",
-	"compatibility_date": "2026-02-12",
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"pages_build_output_dir": "./dist",
-	"observability": {
-		"enabled": true
-	}
-	/**
-	 * Smart Placement
-	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": {  "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 * Note: Use secrets to store sensitive data.
-	 * https://developers.cloudflare.com/workers/configuration/secrets/
-	 */
-	// "vars": {  "MY_VARIABLE": "production_value" }
-	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
-	 */
-	// "assets": {  "directory": "./public/",  "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-official-site",
+  "compatibility_date": "2026-02-12",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./dist",
+  "observability": { "enabled": true },
+
+  "vars": {
+    "PUBLIC_YOUTUBE_CHANNEL_ID": "UCIW-8vCziV81yGdykqQvlLA",
+
+    // Homeで固定表示したい動画（あなたが指定したやつ）
+    "PUBLIC_HOME_FEATURED_YT_VIDEO_ID": "Fd6Rx1Dxyp4",
+
+    // Liveが取れない/オフライン時のフォールバック（ここは好きな別動画IDに）
+    "PUBLIC_LIVE_FALLBACK_YT_VIDEO_ID": "o_0O1Y0bcQs",
+
+    "PUBLIC_NOTE_RSS_URL": "https://note.com/atom_/rss",
+
+    "PUBLIC_X_URL": "https://x.com/saikusakiyomu",
+    "PUBLIC_YOUTUBE_URL": "https://www.youtube.com/channel/UCIW-8vCziV81yGdykqQvlLA",
+
+    // ここ重要：実装が PUBLIC_NOTE_PROFILE_URL を見てるなら、この名前に合わせる
+    "PUBLIC_NOTE_PROFILE_URL": "https://note.com/atom_",
+
+    "PUBLIC_VRCHAT_URL": "https://vrc.group/STAR.9186",
+    "PUBLIC_DISCORD_URL": "https://discord.gg/Bn4GC5A9Zy",
+    "PUBLIC_TWITCH_URL": "https://www.twitch.tv/saikusakiyomu",
+    "PUBLIC_KICK_URL": "https://kick.com/saikusakiyomu"
+  }
 }

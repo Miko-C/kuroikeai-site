@@ -9,7 +9,7 @@ const env = import.meta.env;
 export const links = {
   x: env.PUBLIC_X_PROFILE_URL || env.PUBLIC_X_URL || '#',
   youtube: env.PUBLIC_YOUTUBE_CHANNEL_URL || env.PUBLIC_YOUTUBE_URL || '#',
-  note: env.PUBLIC_NOTE_PROFILE_URL || env.PUBLIC_NOTE_URL || '#',
+  note: env.PUBLIC_NOTE_PROFILE_URL || env.PUBLIC_NOTE_URL || 'https://note.com/<MY_NOTE_ID>',
   vrchat: env.PUBLIC_VRCHAT_URL || '#',
   discord: env.PUBLIC_DISCORD_URL || '#',
   twitch: env.PUBLIC_TWITCH_URL || '#',

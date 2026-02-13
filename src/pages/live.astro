@@ -14,8 +14,7 @@ const liveEmbedUrl = channelId
 const recommendedEmbedUrl = recommendedVideoId
   ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(recommendedVideoId)}`
   : '';
-const initialTab: 'live' | 'recommended' = 'recommended';
-const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
+const initialTab: 'live' | 'recommended' = 'live';
 ---
 
 <Layout title={`${site.title} | Live`} description="配信ページ">
@@ -23,10 +22,10 @@ const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
     <div class="section-content">
       <p class="eyebrow">Live</p>
       <h1 class="hero-title">配信ページ</h1>
-      <p class="hero-sub">「ライブを見る」と「おすすめ動画を見る」を切り替えて視聴できます。</p>
+      <p class="hero-sub">初期表示はライブです。「ライブを見る」と「おすすめ動画を見る」を切り替えて視聴できます。</p>
 
       {
-        initialEmbedUrl ? (
+        liveEmbedUrl || recommendedEmbedUrl ? (
           <div class="live-player-wrap content-card" data-live-panel>
             <div class="switch-row" role="tablist" aria-label="Live表示切り替え">
               <button
@@ -51,8 +50,19 @@ const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
             <div class="player-shell" data-player-wrap>
               <iframe
                 id="live-player"
+                class="player-frame"
                 title="Live Stream"
-                src={initialEmbedUrl}
+                src={initialTab === 'live' ? liveEmbedUrl : ''}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+              <iframe
+                id="recommended-player"
+                class="player-frame is-hidden"
+                title="Recommended Video"
+                src=""
                 loading="lazy"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
@@ -78,19 +88,42 @@ const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
   const panels = document.querySelectorAll('[data-live-panel]');
 
   panels.forEach((panel) => {
-    const iframe = panel.querySelector('#live-player');
+    const liveFrame = panel.querySelector('#live-player');
+    const recommendedFrame = panel.querySelector('#recommended-player');
     const buttons = panel.querySelectorAll('[data-tab]');
-    if (!iframe || buttons.length === 0) return;
+    if (!liveFrame || !recommendedFrame || buttons.length === 0) return;
+
+    const frameByTab = {
+      live: liveFrame,
+      recommended: recommendedFrame,
+    };
+
+    const srcByTab = {
+      live: liveEmbedUrl,
+      recommended: recommendedEmbedUrl,
+    };
 
     const setTab = (tab) => {
-      const nextSrc = tab === 'recommended' ? recommendedEmbedUrl || liveEmbedUrl : liveEmbedUrl || recommendedEmbedUrl;
-      if (nextSrc && iframe.getAttribute('src') !== nextSrc) {
-        iframe.setAttribute('src', nextSrc);
+      const requestedTab = tab === 'recommended' ? 'recommended' : 'live';
+      const nextTab = srcByTab[requestedTab] ? requestedTab : requestedTab === 'live' ? 'recommended' : 'live';
+      const otherTab = nextTab === 'live' ? 'recommended' : 'live';
+      const activeFrame = frameByTab[nextTab];
+      const hiddenFrame = frameByTab[otherTab];
+      const activeSrc = srcByTab[nextTab];
+
+      hiddenFrame.setAttribute('src', '');
+      hiddenFrame.classList.add('is-hidden');
+
+      if (activeSrc) {
+        activeFrame.setAttribute('src', activeSrc);
+      } else {
+        activeFrame.setAttribute('src', '');
       }
+      activeFrame.classList.remove('is-hidden');
 
       buttons.forEach((button) => {
-        const buttonTab = button.getAttribute('data-tab') || '';
-        const isActive = buttonTab === tab;
+        const buttonTab = button.getAttribute('data-tab') === 'live' ? 'live' : 'recommended';
+        const isActive = buttonTab === nextTab;
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
@@ -143,7 +176,23 @@ const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
     background: rgba(4, 8, 14, 0.76);
   }
 
+  .player-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .player-frame.is-hidden {
+    display: none;
+  }
+
+  .player-shell {
+    position: relative;
+  }
+
   .player-shell iframe {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     border: 0;

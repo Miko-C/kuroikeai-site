@@ -4,60 +4,18 @@ import { links, site, visuals } from '../config/site';
 
 const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID?.trim() ?? '';
 const channelUrl = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_URL?.trim() ?? import.meta.env.PUBLIC_YOUTUBE_URL?.trim() ?? '';
-const siteOrigin = import.meta.env.PUBLIC_SITE_ORIGIN?.trim() ?? '';
-const fallbackVideoId =
+const recommendedVideoId =
   import.meta.env.PUBLIC_LIVE_FALLBACK_YT_VIDEO_ID?.trim() ??
   import.meta.env.PUBLIC_HOME_FEATURED_YT_VIDEO_ID?.trim() ??
   '';
-const youtubeApiKey = import.meta.env.YOUTUBE_API_KEY?.trim() ?? '';
-
-let liveVideoId: string | null = null;
-
-if (channelId && youtubeApiKey) {
-  const endpoint = new URL('https://www.googleapis.com/youtube/v3/search');
-  endpoint.searchParams.set('part', 'id');
-  endpoint.searchParams.set('channelId', channelId);
-  endpoint.searchParams.set('eventType', 'live');
-  endpoint.searchParams.set('type', 'video');
-  endpoint.searchParams.set('order', 'date');
-  endpoint.searchParams.set('maxResults', '1');
-  endpoint.searchParams.set('fields', 'items(id/videoId)');
-  endpoint.searchParams.set('key', youtubeApiKey);
-
-  try {
-    const response = await fetch(endpoint, {
-      headers: { Accept: 'application/json' },
-      cache: 'no-store',
-    });
-    if (response.ok) {
-      const json = (await response.json()) as {
-        items?: Array<{ id?: { videoId?: string } }>;
-      };
-      liveVideoId = json.items?.[0]?.id?.videoId?.trim() ?? null;
-    } else {
-      console.warn(`[/live] Failed to fetch live video id: ${response.status}`);
-    }
-  } catch (error) {
-    console.warn('[/live] Live detection failed:', error);
-  }
-} else if (channelId && !youtubeApiKey) {
-  console.warn('[/live] YOUTUBE_API_KEY is not configured. Live detection is disabled.');
-}
-
-const isLive = Boolean(liveVideoId);
-
-const liveEmbedUrl = liveVideoId
-  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(liveVideoId)}`
-  : channelId
-    ? `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(channelId)}${siteOrigin ? `&origin=${encodeURIComponent(siteOrigin)}` : ''}`
-    : '';
-
-const recommendedEmbedUrl = fallbackVideoId
-  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(fallbackVideoId)}`
+const liveEmbedUrl = channelId
+  ? `https://www.youtube-nocookie.com/embed/live_stream?channel=${encodeURIComponent(channelId)}`
   : '';
-
-const initialMode: 'live' | 'recommended' = isLive ? 'live' : 'recommended';
-const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbedUrl : recommendedEmbedUrl || liveEmbedUrl;
+const recommendedEmbedUrl = recommendedVideoId
+  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(recommendedVideoId)}`
+  : '';
+const initialTab: 'live' | 'recommended' = 'recommended';
+const initialEmbedUrl = recommendedEmbedUrl || liveEmbedUrl;
 ---
 
 <Layout title={`${site.title} | Live`} description="配信ページ">
@@ -65,35 +23,34 @@ const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbe
     <div class="section-content">
       <p class="eyebrow">Live</p>
       <h1 class="hero-title">配信ページ</h1>
-      <p class="hero-sub">{isLive ? '現在ライブ配信中の映像を表示しています。' : '現在ライブ配信がないため、おすすめ動画を表示しています。'}</p>
+      <p class="hero-sub">「ライブを見る」と「おすすめ動画を見る」を切り替えて視聴できます。</p>
 
       {
         initialEmbedUrl ? (
           <div class="live-player-wrap content-card" data-live-panel>
             <div class="switch-row" role="tablist" aria-label="Live表示切り替え">
               <button
-                class={`switch-button${initialMode === 'live' ? ' is-active' : ''}`}
+                class={`switch-button${initialTab === 'live' ? ' is-active' : ''}`}
                 type="button"
-                data-mode="live"
+                data-tab="live"
                 role="tab"
-                aria-selected={initialMode === 'live' ? 'true' : 'false'}
-                disabled={!isLive}
-                aria-disabled={!isLive ? 'true' : 'false'}
+                aria-selected={initialTab === 'live' ? 'true' : 'false'}
               >
                 ライブを見る
               </button>
               <button
-                class={`switch-button${initialMode === 'recommended' ? ' is-active' : ''}`}
+                class={`switch-button${initialTab === 'recommended' ? ' is-active' : ''}`}
                 type="button"
-                data-mode="recommended"
+                data-tab="recommended"
                 role="tab"
-                aria-selected={initialMode === 'recommended' ? 'true' : 'false'}
+                aria-selected={initialTab === 'recommended' ? 'true' : 'false'}
               >
                 おすすめ動画を見る
               </button>
             </div>
             <div class="player-shell" data-player-wrap>
               <iframe
+                id="live-player"
                 title="Live Stream"
                 src={initialEmbedUrl}
                 loading="lazy"
@@ -117,23 +74,23 @@ const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbe
   </section>
 </Layout>
 
-<script type="module" define:vars={{ liveEmbedUrl, recommendedEmbedUrl, initialMode }}>
+<script type="module" define:vars={{ liveEmbedUrl, recommendedEmbedUrl, initialTab }}>
   const panels = document.querySelectorAll('[data-live-panel]');
 
   panels.forEach((panel) => {
-    const iframe = panel.querySelector('iframe');
-    const buttons = panel.querySelectorAll('[data-mode]');
+    const iframe = panel.querySelector('#live-player');
+    const buttons = panel.querySelectorAll('[data-tab]');
     if (!iframe || buttons.length === 0) return;
 
-    const setMode = (mode) => {
-      const nextSrc = mode === 'recommended' ? recommendedEmbedUrl || liveEmbedUrl : liveEmbedUrl || recommendedEmbedUrl;
+    const setTab = (tab) => {
+      const nextSrc = tab === 'recommended' ? recommendedEmbedUrl || liveEmbedUrl : liveEmbedUrl || recommendedEmbedUrl;
       if (nextSrc && iframe.getAttribute('src') !== nextSrc) {
         iframe.setAttribute('src', nextSrc);
       }
 
       buttons.forEach((button) => {
-        const buttonMode = button.getAttribute('data-mode') || '';
-        const isActive = buttonMode === mode;
+        const buttonTab = button.getAttribute('data-tab') || '';
+        const isActive = buttonTab === tab;
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
@@ -141,13 +98,12 @@ const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbe
 
     buttons.forEach((button) => {
       button.addEventListener('click', () => {
-        if (button.hasAttribute('disabled')) return;
-        const mode = button.getAttribute('data-mode') === 'recommended' ? 'recommended' : 'live';
-        setMode(mode);
+        const tab = button.getAttribute('data-tab') === 'live' ? 'live' : 'recommended';
+        setTab(tab);
       });
     });
 
-    setMode(initialMode);
+    setTab(initialTab);
   });
 </script>
 
@@ -176,11 +132,6 @@ const initialEmbedUrl = initialMode === 'live' ? liveEmbedUrl || recommendedEmbe
   .switch-button.is-active {
     background: rgba(132, 233, 255, 0.2);
     border-color: rgba(132, 233, 255, 0.58);
-  }
-
-  .switch-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
   }
 
   .player-shell {

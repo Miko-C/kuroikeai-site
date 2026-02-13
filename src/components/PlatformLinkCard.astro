@@ -6,140 +6,121 @@ interface Props {
 }
 
 const { platform } = Astro.props;
-const backgroundStack = platform.backgroundImages.map((url) => `url('${url}')`).join(', ');
 ---
 
-<article class="platform-card" style={`background-image: ${backgroundStack}`}>
-  <div class="overlay">
-    <p class="eyebrow">Platform</p>
-    <h2>{platform.title}</h2>
+{
+  platform.isConfigured ? (
+    <a class="platform-card" href={platform.url} target="_blank" rel="noreferrer" aria-label={`${platform.title}を開く`}>
+      <div class="card-head">
+        <h2>{platform.title}</h2>
+        <span class="state-badge is-ok">リンクあり</span>
+      </div>
 
-    <div class="description-list">
-      {platform.descriptionParagraphs.map((paragraph) => (
-        <p>{paragraph}</p>
-      ))}
-    </div>
+      <div class="description-list">
+        {platform.descriptionParagraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
 
-    <div class="card-footer">
-      <p class:list={['url-text', !platform.isConfigured && 'is-missing']}>{platform.url}</p>
-      {
-        platform.isConfigured ? (
-          <a class="open-button" href={platform.url} target="_blank" rel="noreferrer">開く</a>
-        ) : (
-          <span class="open-button is-disabled" aria-disabled="true">開く</span>
-        )
-      }
-    </div>
-  </div>
-</article>
+      <p class="url-text">{platform.url}</p>
+    </a>
+  ) : (
+    <article class="platform-card is-disabled" aria-label={`${platform.title} URL未設定`}>
+      <div class="card-head">
+        <h2>{platform.title}</h2>
+        <span class="state-badge is-missing">URL未設定</span>
+      </div>
+
+      <div class="description-list">
+        {platform.descriptionParagraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+
+      <p class="url-text">{platform.url}</p>
+    </article>
+  )
+}
 
 <style>
   .platform-card {
-    position: relative;
-    min-height: clamp(300px, 52vh, 460px);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: 1px solid rgba(193, 222, 248, 0.28);
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.52), 0 0 24px rgba(137, 234, 255, 0.16);
-  }
-
-  .overlay {
-    width: 100%;
-    min-height: inherit;
     display: grid;
-    align-content: end;
-    gap: 0.75rem;
-    padding: clamp(1rem, 3.6vw, 1.5rem);
-    background:
-      linear-gradient(to top, rgba(4, 7, 12, 0.9) 24%, rgba(4, 7, 12, 0.46) 68%, rgba(4, 7, 12, 0.2)),
-      linear-gradient(120deg, rgba(137, 234, 255, 0.12), rgba(255, 255, 255, 0.03));
-    backdrop-filter: blur(7px);
+    gap: 0.7rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(196, 220, 244, 0.26);
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.46), 0 0 18px rgba(137, 234, 255, 0.1);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .eyebrow {
-    margin: 0;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #cadcf0;
-    font-size: 0.76rem;
+  a.platform-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(190, 228, 255, 0.48);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 22px rgba(137, 234, 255, 0.17);
+  }
+
+  .platform-card.is-disabled {
+    opacity: 0.82;
+    cursor: default;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
   }
 
   h2 {
     margin: 0;
-    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  }
+
+  .state-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 1.65rem;
+    padding: 0 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    border: 1px solid transparent;
+  }
+
+  .state-badge.is-ok {
+    color: #ddf8ef;
+    border-color: rgba(126, 232, 181, 0.45);
+    background: rgba(42, 123, 93, 0.32);
+  }
+
+  .state-badge.is-missing {
+    color: #ffd5d7;
+    border-color: rgba(255, 153, 159, 0.45);
+    background: rgba(93, 30, 36, 0.36);
   }
 
   .description-list {
     display: grid;
-    gap: 0.44rem;
+    gap: 0.4rem;
   }
 
   .description-list p {
     margin: 0;
     line-height: 1.75;
-    color: #dfedfb;
-    font-size: clamp(0.95rem, 1.9vw, 1.03rem);
-  }
-
-  .card-footer {
-    margin-top: 0.15rem;
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    color: #deebf9;
+    font-size: 0.96rem;
   }
 
   .url-text {
     margin: 0;
-    padding: 0.45rem 0.62rem;
-    border-radius: 9px;
-    border: 1px solid rgba(196, 222, 247, 0.3);
-    background: rgba(3, 8, 15, 0.55);
-    color: #bdd5ef;
-    font-size: 0.8rem;
+    color: #9dc2e2;
+    font-size: 0.78rem;
     word-break: break-all;
-  }
-
-  .url-text.is-missing {
-    color: #ffcccf;
-    border-color: rgba(255, 150, 156, 0.38);
-    background: rgba(36, 8, 12, 0.55);
-  }
-
-  .open-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 5rem;
-    height: 2.1rem;
-    padding: 0 0.9rem;
-    border-radius: 999px;
-    border: 1px solid rgba(193, 222, 248, 0.4);
-    background: rgba(137, 234, 255, 0.16);
-    color: #eff8ff;
-    font-size: 0.86rem;
-    text-decoration: none;
-  }
-
-  .open-button.is-disabled {
-    opacity: 0.55;
-    pointer-events: none;
-  }
-
-  @media (max-width: 640px) {
-    .platform-card {
-      min-height: 340px;
-    }
-
-    .card-footer {
-      align-items: stretch;
-    }
-
-    .open-button {
-      width: 100%;
-    }
   }
 </style>

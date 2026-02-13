@@ -1,0 +1,113 @@
+---
+const profileUrl = import.meta.env.PUBLIC_X_PROFILE_URL?.trim() ?? import.meta.env.PUBLIC_X_URL?.trim() ?? '';
+const isConfigured = Boolean(profileUrl && profileUrl !== '#');
+---
+
+<div class="embed-panel content-card" id="x-timeline-root">
+  <p class="hero-sub">
+    最新のポストをタイムラインで表示します。埋め込みが表示されない場合はX側で直接確認してください。
+  </p>
+
+  {
+    isConfigured ? (
+      <div class="timeline-wrap">
+        <a
+          class="twitter-timeline"
+          data-theme="dark"
+          data-chrome="noheader nofooter transparent"
+          data-lang="ja"
+          data-dnt="true"
+          href={profileUrl}
+        >
+          Xタイムラインを読み込み中
+        </a>
+      </div>
+    ) : (
+      <div class="embed-fallback">XプロフィールURL未設定のため埋め込みを表示できません。</div>
+    )
+  }
+
+  <div class="link-row">
+    {isConfigured ? <a href={profileUrl} target="_blank" rel="noreferrer">表示されない場合はXで開く</a> : <span>PUBLIC_X_PROFILE_URL 未設定</span>}
+  </div>
+</div>
+
+<script is:inline>
+  const root = document.getElementById('x-timeline-root');
+
+  const loadXWidgets = () => {
+    if (!root) return;
+
+    const loadTimeline = () => {
+      if (window.twttr && window.twttr.widgets) {
+        window.twttr.widgets.load(root);
+      }
+    };
+
+    if (window.twttr && window.twttr.widgets) {
+      loadTimeline();
+      return;
+    }
+
+    const existing = document.querySelector('script[data-x-widgets]');
+    if (existing) {
+      existing.addEventListener('load', loadTimeline, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://platform.twitter.com/widgets.js';
+    script.async = true;
+    script.setAttribute('data-x-widgets', 'true');
+    script.addEventListener('load', loadTimeline, { once: true });
+    document.head.appendChild(script);
+  };
+
+  loadXWidgets();
+  document.addEventListener('astro:page-load', loadXWidgets);
+</script>
+
+<style>
+  .embed-panel {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .timeline-wrap {
+    min-height: 520px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(191, 220, 247, 0.34);
+    background: rgba(4, 8, 14, 0.76);
+    padding: 0.4rem;
+  }
+
+  .embed-fallback {
+    min-height: 160px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    border: 1px dashed rgba(191, 220, 247, 0.42);
+    color: #dbefff;
+    background: rgba(4, 8, 14, 0.6);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .link-row a,
+  .link-row span {
+    display: inline-block;
+    padding: 0.35rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #cfe6fc;
+    font-size: 0.82rem;
+  }
+</style>

@@ -1,0 +1,150 @@
+---
+const rssUrl = import.meta.env.PUBLIC_NOTE_RSS_URL?.trim() ?? '';
+const profileUrl = import.meta.env.PUBLIC_NOTE_PROFILE_URL?.trim() ?? import.meta.env.PUBLIC_NOTE_URL?.trim() ?? '#';
+
+interface NoteEntry {
+  link: string;
+  noteId: string;
+}
+
+const entries: NoteEntry[] = [];
+
+if (rssUrl) {
+  try {
+    const response = await fetch(rssUrl);
+    if (response.ok) {
+      const xml = await response.text();
+      const itemMatches = Array.from(xml.matchAll(/<item>[\s\S]*?<link>(?:<!\[CDATA\[)?([^<\]]+)(?:\]\]>)?<\/link>[\s\S]*?<\/item>/gi));
+
+      for (const item of itemMatches.slice(0, 3)) {
+        const link = (item[1] || '').trim();
+        const idMatch = link.match(/\/n\/(n[0-9a-zA-Z]+)/);
+        const noteId = idMatch?.[1] ?? '';
+        if (link && noteId) {
+          entries.push({ link, noteId });
+        }
+      }
+    }
+  } catch {
+    // Fallback UI is rendered when feed fetch fails.
+  }
+}
+---
+
+<div class="embed-panel content-card">
+  <p class="hero-sub">noteの最新記事を3件表示しています。取得できない場合でもプロフィールから最新記事を確認できます。</p>
+
+  {
+    entries.length > 0 ? (
+      <div class="note-list-wrap">
+        {entries.map((entry) => (
+          <article class="note-card">
+            <div class="note-wrap">
+              <iframe
+                title={`note article ${entry.noteId}`}
+                src={`https://note.com/embed/notes/${entry.noteId}`}
+                loading="lazy"
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+            <a href={entry.link} target="_blank" rel="noreferrer">この記事を開く</a>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div class="embed-fallback">最新記事を取得できませんでした。下のリンクからご確認ください。</div>
+    )
+  }
+
+  <div class="link-row">
+    {entries[0]?.link ? <a href={entries[0].link} target="_blank" rel="noreferrer">最新記事を見る</a> : null}
+    {profileUrl && profileUrl !== '#' ? <a href={profileUrl} target="_blank" rel="noreferrer">noteプロフィールへ</a> : <span>PUBLIC_NOTE_PROFILE_URL 未設定</span>}
+  </div>
+</div>
+
+<style>
+  .embed-panel {
+    display: grid;
+    gap: 0.95rem;
+  }
+
+  .note-list-wrap {
+    width: min(780px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 1.15rem;
+  }
+
+  .note-card {
+    display: grid;
+    justify-items: center;
+    grid-template-rows: 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+    width: min(700px, 100%);
+    margin: 0 auto;
+    padding: 0.75rem;
+    border-radius: 14px;
+    border: 1px solid rgba(191, 220, 247, 0.3);
+    background: rgba(4, 8, 14, 0.44);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
+  }
+
+  .note-wrap {
+    width: min(640px, 100%);
+    height: clamp(210px, 30vw, 280px);
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(191, 220, 247, 0.34);
+    background: rgba(4, 8, 14, 0.76);
+  }
+
+  .note-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .note-card a {
+    justify-self: start;
+    display: inline-block;
+    padding: 0.35rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #cfe6fc;
+    font-size: 0.82rem;
+  }
+
+  .embed-fallback {
+    min-height: 160px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    border: 1px dashed rgba(191, 220, 247, 0.42);
+    color: #dbefff;
+    background: rgba(4, 8, 14, 0.6);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .link-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .link-row a,
+  .link-row span {
+    display: inline-block;
+    padding: 0.35rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #cfe6fc;
+    font-size: 0.82rem;
+  }
+</style>

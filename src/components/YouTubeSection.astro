@@ -1,0 +1,172 @@
+---
+const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID?.trim() ?? '';
+const channelUrl = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_URL?.trim() ?? import.meta.env.PUBLIC_YOUTUBE_URL?.trim() ?? '#';
+const siteOrigin = import.meta.env.PUBLIC_SITE_ORIGIN?.trim() ?? '';
+
+let latestVideoId = '';
+let latestVideoUrl = '';
+
+if (channelId) {
+  try {
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channelId)}`;
+    const response = await fetch(feedUrl);
+    if (response.ok) {
+      const xml = await response.text();
+      const match = xml.match(/<yt:videoId>([^<]+)<\/yt:videoId>/i);
+      latestVideoId = match?.[1]?.trim() ?? '';
+      if (latestVideoId) {
+        latestVideoUrl = `https://www.youtube.com/watch?v=${latestVideoId}`;
+      }
+    }
+  } catch {
+    // Fallback UI is rendered below when feed cannot be fetched.
+  }
+}
+
+const liveEmbedUrl = channelId
+  ? `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(channelId)}${siteOrigin ? `&origin=${encodeURIComponent(siteOrigin)}` : ''}`
+  : '';
+const latestEmbedUrl = latestVideoId
+  ? `https://www.youtube.com/embed/${latestVideoId}${siteOrigin ? `?origin=${encodeURIComponent(siteOrigin)}` : ''}`
+  : '';
+const hasYouTube = channelUrl && channelUrl !== '#';
+---
+
+<div class="embed-panel content-card" data-youtube-panel>
+  <p class="hero-sub">
+    配信中はライブを表示できます。表示されない場合は「最新動画を見る」または「チャンネルで開く」から確認してください。
+  </p>
+
+  {
+    channelId ? (
+      <>
+        <div class="switch-row" role="tablist" aria-label="YouTube表示切り替え">
+          <button class="switch-button is-active" type="button" data-mode="live" role="tab" aria-selected="true">
+            ライブを見る
+          </button>
+          <button class="switch-button" type="button" data-mode="latest" role="tab" aria-selected="false">
+            最新動画を見る
+          </button>
+        </div>
+
+        <div class="player-wrap" data-player-wrap>
+          <iframe
+            title="YouTube player"
+            src={liveEmbedUrl || latestEmbedUrl}
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+        </div>
+      </>
+    ) : (
+      <div class="embed-fallback">チャンネルID未設定のため埋め込みを表示できません。</div>
+    )
+  }
+
+  <div class="link-row">
+    {latestVideoUrl ? <a href={latestVideoUrl} target="_blank" rel="noreferrer">最新動画を見る</a> : <span>最新動画を取得できませんでした</span>}
+    {hasYouTube ? <a href={channelUrl} target="_blank" rel="noreferrer">チャンネルで開く</a> : <span>チャンネルURL未設定</span>}
+  </div>
+</div>
+
+<script define:vars={{ liveEmbedUrl, latestEmbedUrl }}>
+  const panels = document.querySelectorAll('[data-youtube-panel]');
+
+  panels.forEach((panel) => {
+    const buttons = panel.querySelectorAll('[data-mode]');
+    const iframe = panel.querySelector('iframe');
+    if (!iframe || buttons.length === 0) return;
+
+    const setMode = (mode) => {
+      const src = mode === 'latest' ? latestEmbedUrl || liveEmbedUrl : liveEmbedUrl || latestEmbedUrl;
+      if (src && iframe.getAttribute('src') !== src) {
+        iframe.setAttribute('src', src);
+      }
+
+      buttons.forEach((button) => {
+        const isActive = button.getAttribute('data-mode') === mode;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        setMode(button.getAttribute('data-mode') || 'live');
+      });
+    });
+  });
+</script>
+
+<style>
+  .embed-panel {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .switch-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .switch-button {
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.55);
+    color: #dbeeff;
+    border-radius: 999px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+
+  .switch-button.is-active {
+    background: rgba(132, 233, 255, 0.2);
+    border-color: rgba(132, 233, 255, 0.58);
+  }
+
+  .player-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(191, 220, 247, 0.34);
+    background: rgba(4, 8, 14, 0.75);
+  }
+
+  .player-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .embed-fallback {
+    min-height: 160px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    border: 1px dashed rgba(191, 220, 247, 0.42);
+    color: #dbefff;
+    background: rgba(4, 8, 14, 0.6);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .link-row a,
+  .link-row span {
+    display: inline-block;
+    padding: 0.35rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #cfe6fc;
+    font-size: 0.82rem;
+  }
+</style>

@@ -1,6 +1,82 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { links, site, visuals } from '../config/site';
+
+interface LiveCache {
+  expiresAt: number;
+  liveVideoId: string | null;
+}
+
+const channelId = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_ID?.trim() ?? '';
+const fallbackVideoId =
+  import.meta.env.PUBLIC_LIVE_FALLBACK_YT_VIDEO_ID?.trim() ??
+  import.meta.env.PUBLIC_HOME_FEATURED_YT_VIDEO_ID?.trim() ??
+  '';
+const youtubeApiKey = import.meta.env.YOUTUBE_API_KEY?.trim() ?? '';
+
+let selectedVideoId = fallbackVideoId;
+let isLive = false;
+
+const cacheKey = '__kuroike_live_cache_v1';
+const now = Date.now();
+const ttlMs = 60_000;
+
+const cacheStore = globalThis as typeof globalThis & { [cacheKey]?: LiveCache };
+const cached = cacheStore[cacheKey];
+
+const fetchLiveVideoId = async () => {
+  if (!channelId || !youtubeApiKey) {
+    return null;
+  }
+
+  const endpoint = new URL('https://www.googleapis.com/youtube/v3/search');
+  endpoint.searchParams.set('part', 'snippet');
+  endpoint.searchParams.set('channelId', channelId);
+  endpoint.searchParams.set('eventType', 'live');
+  endpoint.searchParams.set('type', 'video');
+  endpoint.searchParams.set('maxResults', '1');
+  endpoint.searchParams.set('key', youtubeApiKey);
+
+  try {
+    const response = await fetch(endpoint, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) {
+      return null;
+    }
+
+    const json = (await response.json()) as {
+      items?: Array<{ id?: { videoId?: string } }>;
+    };
+
+    return json.items?.[0]?.id?.videoId ?? null;
+  } catch {
+    return null;
+  }
+};
+
+if (youtubeApiKey) {
+  let liveVideoId: string | null = null;
+
+  if (cached && cached.expiresAt > now) {
+    liveVideoId = cached.liveVideoId;
+  } else {
+    liveVideoId = await fetchLiveVideoId();
+    cacheStore[cacheKey] = {
+      expiresAt: now + ttlMs,
+      liveVideoId,
+    };
+  }
+
+  if (liveVideoId) {
+    selectedVideoId = liveVideoId;
+    isLive = true;
+  }
+}
+
+const embedUrl = selectedVideoId
+  ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(selectedVideoId)}`
+  : '';
 ---
 
 <Layout title={`${site.title} | Live`} description="配信ページ">
@@ -9,14 +85,90 @@ import { links, site, visuals } from '../config/site';
       <p class="eyebrow">Live</p>
       <h1 class="hero-title">配信ページ</h1>
       <p class="hero-sub">
-        最新の配信枠とアーカイブ導線をこのページへ集約します。現在はダミー状態で、次ステップでAPI連携または埋め込みに差し替えます。
+        {youtubeApiKey
+          ? isLive
+            ? '現在ライブ配信中の映像を表示しています。'
+            : '現在ライブ配信がないため、指定のフォールバック動画を表示しています。'
+          : 'ライブ自動検出は未設定です。配信中かどうかはYouTubeチャンネル側でも確認できます。'}
       </p>
-      <div class="content-placeholder">Live Stream Embed Placeholder</div>
-      <div class="content-card">
-        <p>YouTube: <a href={links.youtube} target="_blank" rel="noreferrer">{links.youtube}</a></p>
-        <p>Twitch: <a href={links.twitch} target="_blank" rel="noreferrer">{links.twitch}</a></p>
-        <p>Kick: <a href={links.kick} target="_blank" rel="noreferrer">{links.kick}</a></p>
+
+      {
+        embedUrl ? (
+          <div class="live-player-wrap content-card">
+            <div class="player-shell">
+              <iframe
+                title="Live Stream"
+                src={embedUrl}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                referrerpolicy="strict-origin-when-cross-origin"
+              ></iframe>
+            </div>
+          </div>
+        ) : (
+          <div class="embed-fallback content-card">動画IDが未設定のため埋め込みを表示できません。</div>
+        )
+      }
+
+      <div class="content-card links-card">
+        <a class="platform-link" href={links.youtube} target="_blank" rel="noreferrer">YouTube</a>
+        <a class="platform-link" href={links.twitch} target="_blank" rel="noreferrer">Twitch</a>
+        <a class="platform-link" href={links.kick} target="_blank" rel="noreferrer">Kick</a>
       </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  .live-player-wrap {
+    padding: 0.7rem;
+  }
+
+  .player-shell {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(191, 220, 247, 0.34);
+    background: rgba(4, 8, 14, 0.76);
+  }
+
+  .player-shell iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .embed-fallback {
+    min-height: 150px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+
+  .links-card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .platform-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #d5e9fc;
+    text-decoration: none;
+    font-size: 0.85rem;
+    min-width: 7.5rem;
+  }
+
+  .platform-link:hover {
+    border-color: rgba(132, 233, 255, 0.52);
+    background: rgba(18, 29, 42, 0.6);
+  }
+</style>

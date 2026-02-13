@@ -7,9 +7,9 @@ export const site = {
 const env = import.meta.env;
 
 export const links = {
-  x: env.PUBLIC_X_URL || '#',
-  youtube: env.PUBLIC_YOUTUBE_URL || '#',
-  note: env.PUBLIC_NOTE_URL || '#',
+  x: env.PUBLIC_X_PROFILE_URL || env.PUBLIC_X_URL || '#',
+  youtube: env.PUBLIC_YOUTUBE_CHANNEL_URL || env.PUBLIC_YOUTUBE_URL || '#',
+  note: env.PUBLIC_NOTE_PROFILE_URL || env.PUBLIC_NOTE_URL || '#',
   vrchat: env.PUBLIC_VRCHAT_URL || '#',
   discord: env.PUBLIC_DISCORD_URL || '#',
   twitch: env.PUBLIC_TWITCH_URL || '#',
@@ -41,9 +41,9 @@ export const profile = {
 export const visuals = {
   hero: '/visuals/hero.png',
   activity: '/visuals/section-dc.png.png',
-  live: '/visuals/space datacenter.png',
-  post: '/visuals/snow datacenter.png',
-  article: '/visuals/room.png',
+  live: '/visuals/bg-live.png',
+  post: '/visuals/bg-post.png',
+  article: '/visuals/bg-article.png',
   cat: '/visuals/black cat.png',
   dog: '/visuals/どうも.png',
   avatar: '/visuals/kuroikeai.png',

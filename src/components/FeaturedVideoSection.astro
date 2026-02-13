@@ -1,0 +1,87 @@
+---
+const featuredVideoId =
+  import.meta.env.PUBLIC_HOME_FEATURED_YT_VIDEO_ID?.trim() ??
+  import.meta.env.PUBLIC_LIVE_FALLBACK_YT_VIDEO_ID?.trim() ??
+  '';
+
+const channelUrl = import.meta.env.PUBLIC_YOUTUBE_CHANNEL_URL?.trim() ?? import.meta.env.PUBLIC_YOUTUBE_URL?.trim() ?? '#';
+
+const embedUrl = featuredVideoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(featuredVideoId)}` : '';
+const hasChannel = channelUrl && channelUrl !== '#';
+---
+
+<div class="embed-panel content-card">
+  <p class="hero-sub">公式で注目している動画を表示しています。表示されない場合はYouTubeチャンネルからご覧ください。</p>
+
+  {
+    embedUrl ? (
+      <div class="player-wrap">
+        <iframe
+          title="注目動画"
+          src={embedUrl}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>
+      </div>
+    ) : (
+      <div class="embed-fallback">PUBLIC_HOME_FEATURED_YT_VIDEO_ID が未設定です。</div>
+    )
+  }
+
+  <div class="link-row">
+    {hasChannel ? <a href={channelUrl} target="_blank" rel="noreferrer">YouTubeチャンネルで開く</a> : <span>チャンネルURL未設定</span>}
+  </div>
+</div>
+
+<style>
+  .embed-panel {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .player-wrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(191, 220, 247, 0.34);
+    background: rgba(4, 8, 14, 0.75);
+  }
+
+  .player-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .embed-fallback {
+    min-height: 160px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    border: 1px dashed rgba(191, 220, 247, 0.42);
+    color: #dbefff;
+    background: rgba(4, 8, 14, 0.6);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .link-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .link-row a,
+  .link-row span {
+    display: inline-block;
+    padding: 0.35rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid rgba(190, 220, 247, 0.35);
+    background: rgba(10, 15, 24, 0.52);
+    color: #cfe6fc;
+    font-size: 0.82rem;
+  }
+</style>

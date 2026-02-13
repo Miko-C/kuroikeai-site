@@ -1,5 +1,8 @@
 ---
+import FeaturedVideoSection from '../components/FeaturedVideoSection.astro';
 import Layout from '../layouts/Layout.astro';
+import NoteLatestSection from '../components/NoteLatestSection.astro';
+import YouTubeSection from '../components/YouTubeSection.astro';
 import { activitySummary, profile, site, visuals } from '../config/site';
 ---
 
@@ -32,21 +35,15 @@ import { activitySummary, profile, site, visuals } from '../config/site';
     <div class="section-content">
       <p class="eyebrow">Latest Live</p>
       <h2>最新の配信</h2>
-      <p class="hero-sub">
-        YouTube埋め込みは次ステップで接続予定です。ここには最新ライブのサムネイル・タイトル・開始時刻が入る想定です。
-      </p>
-      <div class="content-placeholder">YouTube Embed Placeholder</div>
+      <YouTubeSection />
     </div>
   </section>
 
-  <section id="latest-post" class="section-block" style={`background-image: url('${visuals.post}')`}>
+  <section id="featured-video" class="section-block" style={`background-image: url('${visuals.post}')`}>
     <div class="section-content">
-      <p class="eyebrow">Latest Post</p>
-      <h2>最新のポスト</h2>
-      <p class="hero-sub">
-        Xタイムライン埋め込みは次ステップで接続予定です。告知や近況の最新投稿をここに表示します。
-      </p>
-      <div class="content-placeholder">X Timeline Placeholder</div>
+      <p class="eyebrow">Featured Video</p>
+      <h2>注目動画</h2>
+      <FeaturedVideoSection />
     </div>
   </section>
 
@@ -54,10 +51,7 @@ import { activitySummary, profile, site, visuals } from '../config/site';
     <div class="section-content">
       <p class="eyebrow">Latest Article</p>
       <h2>最新記事</h2>
-      <p class="hero-sub">
-        note埋め込みは次ステップで接続予定です。調査・分析・考察や日常の記録記事をここに掲載します。
-      </p>
-      <div class="content-placeholder">note Card Placeholder</div>
+      <NoteLatestSection />
       <p class="eyebrow">Profile: {profile.name}</p>
     </div>
   </section>

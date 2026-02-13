@@ -1,0 +1,145 @@
+---
+import type { PlatformItem } from '../data/platforms';
+
+interface Props {
+  platform: PlatformItem;
+}
+
+const { platform } = Astro.props;
+const backgroundStack = platform.backgroundImages.map((url) => `url('${url}')`).join(', ');
+---
+
+<article class="platform-card" style={`background-image: ${backgroundStack}`}>
+  <div class="overlay">
+    <p class="eyebrow">Platform</p>
+    <h2>{platform.title}</h2>
+
+    <div class="description-list">
+      {platform.descriptionParagraphs.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+    </div>
+
+    <div class="card-footer">
+      <p class:list={['url-text', !platform.isConfigured && 'is-missing']}>{platform.url}</p>
+      {
+        platform.isConfigured ? (
+          <a class="open-button" href={platform.url} target="_blank" rel="noreferrer">開く</a>
+        ) : (
+          <span class="open-button is-disabled" aria-disabled="true">開く</span>
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .platform-card {
+    position: relative;
+    min-height: clamp(300px, 52vh, 460px);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid rgba(193, 222, 248, 0.28);
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.52), 0 0 24px rgba(137, 234, 255, 0.16);
+  }
+
+  .overlay {
+    width: 100%;
+    min-height: inherit;
+    display: grid;
+    align-content: end;
+    gap: 0.75rem;
+    padding: clamp(1rem, 3.6vw, 1.5rem);
+    background:
+      linear-gradient(to top, rgba(4, 7, 12, 0.9) 24%, rgba(4, 7, 12, 0.46) 68%, rgba(4, 7, 12, 0.2)),
+      linear-gradient(120deg, rgba(137, 234, 255, 0.12), rgba(255, 255, 255, 0.03));
+    backdrop-filter: blur(7px);
+  }
+
+  .eyebrow {
+    margin: 0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #cadcf0;
+    font-size: 0.76rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  }
+
+  .description-list {
+    display: grid;
+    gap: 0.44rem;
+  }
+
+  .description-list p {
+    margin: 0;
+    line-height: 1.75;
+    color: #dfedfb;
+    font-size: clamp(0.95rem, 1.9vw, 1.03rem);
+  }
+
+  .card-footer {
+    margin-top: 0.15rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .url-text {
+    margin: 0;
+    padding: 0.45rem 0.62rem;
+    border-radius: 9px;
+    border: 1px solid rgba(196, 222, 247, 0.3);
+    background: rgba(3, 8, 15, 0.55);
+    color: #bdd5ef;
+    font-size: 0.8rem;
+    word-break: break-all;
+  }
+
+  .url-text.is-missing {
+    color: #ffcccf;
+    border-color: rgba(255, 150, 156, 0.38);
+    background: rgba(36, 8, 12, 0.55);
+  }
+
+  .open-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 5rem;
+    height: 2.1rem;
+    padding: 0 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(193, 222, 248, 0.4);
+    background: rgba(137, 234, 255, 0.16);
+    color: #eff8ff;
+    font-size: 0.86rem;
+    text-decoration: none;
+  }
+
+  .open-button.is-disabled {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .platform-card {
+      min-height: 340px;
+    }
+
+    .card-footer {
+      align-items: stretch;
+    }
+
+    .open-button {
+      width: 100%;
+    }
+  }
+</style>

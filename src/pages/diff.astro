@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site } from '../config/site';
+---
+
+<Layout title={`${site.title} | Diff`} description="変更点の確認ページ">
+  <section class="section-block" style="background-image: linear-gradient(135deg, #111827, #1f2937)">
+    <div class="section-content">
+      <p class="eyebrow">Diff</p>
+      <h1 class="hero-title">変更差分の確認</h1>
+      <div class="content-card">
+        <p>ローカルで差分を確認する場合は以下を実行してください。</p>
+        <pre><code>git diff
+git diff --stat</code></pre>
+        <p>このリビルドでは Astro テンプレートを公式サイト構成に全面置き換えています。</p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  pre {
+    margin: 0.6rem 0;
+    padding: 0.7rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.42);
+    border: 1px solid rgba(185, 214, 240, 0.3);
+    overflow-x: auto;
+  }
+</style>

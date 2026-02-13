@@ -1,0 +1,535 @@
+---
+import { footerLinkItems, nav, site } from '../config/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = site.title, description = site.description } = Astro.props;
+const currentPath = Astro.url.pathname;
+const year = new Date().getFullYear();
+
+const homeSectionLinks = [
+  { href: '/#hero', label: 'Hero' },
+  { href: '/#activity', label: '活動内容' },
+  { href: '/#latest-live', label: '最新の配信' },
+  { href: '/#latest-post', label: '最新のポスト' },
+  { href: '/#latest-article', label: '最新記事' },
+];
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <button class="drawer-fab" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="site-drawer" data-drawer-open>
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="site-wrap">
+      <header class="site-header glass">
+        <a class="brand" href="/">
+          <span class="brand-mark">黒</span>
+          <span class="brand-text">KUROIKE AI</span>
+        </a>
+
+        <nav aria-label="グローバルナビゲーション">
+          <ul class="main-nav">
+            {nav.map((item) => (
+              <li>
+                <a class:list={['nav-link', currentPath === item.href && 'is-active']} href={item.href}>{item.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
+
+      <main>
+        <slot />
+      </main>
+
+      <footer class="site-footer glass">
+        <p>© {year} 黒池璦 KUROIKE AI</p>
+        <div class="footer-links">
+          {footerLinkItems.map((item) => (
+            <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </footer>
+    </div>
+
+    <div class="drawer-layer" hidden data-drawer-root>
+      <button class="drawer-backdrop" type="button" aria-label="メニューを閉じる" data-drawer-close></button>
+      <aside id="site-drawer" class="drawer-panel" aria-label="サイドバー" tabindex="-1">
+        <div class="drawer-head">
+          <p>Menu</p>
+          <button class="drawer-close" type="button" aria-label="メニューを閉じる" data-drawer-close>×</button>
+        </div>
+
+        <section>
+          <h2>Pages</h2>
+          <ul>
+            {nav.map((item) => (
+              <li><a href={item.href}>{item.label}</a></li>
+            ))}
+          </ul>
+        </section>
+
+        {
+          currentPath === '/' && (
+            <section>
+              <h2>Home Sections</h2>
+              <ul>
+                {homeSectionLinks.map((item) => (
+                  <li><a href={item.href}>{item.label}</a></li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <section>
+          <h2>External</h2>
+          <ul>
+            {footerLinkItems.map((item) => (
+              <li>
+                <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </aside>
+    </div>
+
+    <script>
+      const drawerRoot = document.querySelector('[data-drawer-root]');
+      const drawer = document.getElementById('site-drawer');
+      const openButton = document.querySelector('[data-drawer-open]');
+      const closeButtons = document.querySelectorAll('[data-drawer-close]');
+
+      if (drawerRoot && drawer && openButton) {
+        const closeDrawer = () => {
+          drawerRoot.hidden = true;
+          document.body.classList.remove('drawer-open');
+          openButton.setAttribute('aria-expanded', 'false');
+        };
+
+        const openDrawer = () => {
+          drawerRoot.hidden = false;
+          document.body.classList.add('drawer-open');
+          openButton.setAttribute('aria-expanded', 'true');
+          drawer.focus();
+        };
+
+        openButton.addEventListener('click', openDrawer);
+        closeButtons.forEach((button) => button.addEventListener('click', closeDrawer));
+
+        drawerRoot.addEventListener('click', (event) => {
+          const target = event.target;
+          if (target instanceof HTMLElement && target.closest('a')) {
+            closeDrawer();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !drawerRoot.hidden) {
+            closeDrawer();
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #05070c;
+    --panel: rgba(8, 11, 19, 0.8);
+    --text: #edf5ff;
+    --text-soft: #bdd0e8;
+    --line: rgba(169, 202, 232, 0.26);
+    --neon: #89eaff;
+    --glow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(137, 234, 255, 0.2);
+    --radius-lg: 28px;
+    --radius-md: 18px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(1000px 600px at 92% -8%, rgba(137, 234, 255, 0.18), transparent 62%),
+      radial-gradient(1000px 560px at 8% 0%, rgba(116, 148, 192, 0.22), transparent 56%),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', 'Yu Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  a {
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .site-wrap {
+    width: min(960px, calc(100vw - 2.2rem));
+    margin: 0 auto;
+    padding: 1rem 0 1.4rem;
+  }
+
+  .glass {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--glow);
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(12px);
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0.8rem;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.95rem;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .brand-mark {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: rgba(137, 234, 255, 0.16);
+    border: 1px solid rgba(137, 234, 255, 0.5);
+    font-weight: 700;
+  }
+
+  .brand-text {
+    letter-spacing: 0.12em;
+    font-size: 0.95rem;
+  }
+
+  .main-nav {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .nav-link {
+    display: inline-block;
+    padding: 0.45rem 0.72rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .nav-link:hover,
+  .nav-link.is-active {
+    color: var(--text);
+    background: rgba(137, 234, 255, 0.14);
+  }
+
+  main {
+    margin-top: 1.3rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .section-block {
+    position: relative;
+    min-height: clamp(420px, 74vh, 820px);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid rgba(192, 219, 242, 0.24);
+    box-shadow: var(--glow);
+    background-size: cover;
+    background-position: center;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .section-block::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(3, 6, 11, 0.86) 22%, rgba(3, 6, 11, 0.35) 65%, rgba(3, 6, 11, 0.2));
+    z-index: -1;
+  }
+
+  .section-content {
+    width: 100%;
+    padding: clamp(1.2rem, 4vw, 2.2rem);
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .eyebrow {
+    margin: 0;
+    letter-spacing: 0.17em;
+    font-size: 0.78rem;
+    color: #d7e8ff;
+    text-transform: uppercase;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  .hero-title {
+    font-size: clamp(2.1rem, 6vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.62);
+  }
+
+  .hero-sub {
+    max-width: 42rem;
+    color: #d9e9fb;
+    line-height: 1.85;
+    font-size: clamp(1rem, 2vw, 1.15rem);
+  }
+
+  .activity-grid {
+    display: grid;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .content-card {
+    background: rgba(6, 10, 18, 0.68);
+    border: 1px solid rgba(204, 228, 255, 0.24);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 22px rgba(137, 234, 255, 0.14);
+    padding: 1rem;
+  }
+
+  .content-card p + p {
+    margin-top: 0.5rem;
+  }
+
+  .content-placeholder {
+    min-height: 210px;
+    border: 1px dashed rgba(190, 219, 246, 0.45);
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    color: var(--text-soft);
+    background: rgba(7, 10, 17, 0.5);
+  }
+
+  .float-image {
+    width: min(260px, 45vw);
+    border-radius: 16px;
+    border: 1px solid rgba(208, 229, 251, 0.44);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), 0 0 20px rgba(137, 234, 255, 0.2);
+    justify-self: end;
+  }
+
+  .site-footer {
+    margin-top: 1rem;
+    padding: 0.95rem 1rem;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .site-footer p {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+
+  .footer-links a {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: rgba(137, 234, 255, 0.1);
+    color: #e0f0ff;
+  }
+
+  .drawer-fab {
+    position: fixed;
+    top: 0.85rem;
+    right: 0.9rem;
+    z-index: 60;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(197, 223, 247, 0.48);
+    background: rgba(7, 11, 18, 0.88);
+    box-shadow: 0 0 20px rgba(137, 234, 255, 0.25);
+    display: grid;
+    place-content: center;
+    gap: 0.2rem;
+    cursor: pointer;
+  }
+
+  .drawer-fab span {
+    width: 0.9rem;
+    height: 2px;
+    background: #eef7ff;
+    display: block;
+    border-radius: 999px;
+  }
+
+  .drawer-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+  }
+
+  .drawer-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.62);
+  }
+
+  .drawer-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(360px, 86vw);
+    height: 100vh;
+    background: rgba(5, 9, 16, 0.96);
+    border-left: 1px solid rgba(199, 224, 250, 0.28);
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.55), 0 0 30px rgba(137, 234, 255, 0.12);
+    padding: 1rem;
+    overflow-y: auto;
+  }
+
+  .drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+  }
+
+  .drawer-head p {
+    letter-spacing: 0.12em;
+    margin: 0;
+  }
+
+  .drawer-close {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid rgba(201, 225, 250, 0.36);
+    background: rgba(137, 234, 255, 0.14);
+    color: #eff7ff;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  .drawer-panel section + section {
+    margin-top: 1rem;
+  }
+
+  .drawer-panel h2 {
+    margin: 0 0 0.4rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    color: var(--text-soft);
+    text-transform: uppercase;
+  }
+
+  .drawer-panel ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .drawer-panel a {
+    display: block;
+    padding: 0.52rem 0.58rem;
+    border-radius: 10px;
+    border: 1px solid rgba(182, 210, 239, 0.22);
+    color: #ebf6ff;
+    background: rgba(137, 234, 255, 0.07);
+  }
+
+  .drawer-open {
+    overflow: hidden;
+  }
+
+  @media (min-width: 880px) {
+    .activity-grid {
+      grid-template-columns: 1.25fr auto;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .site-wrap {
+      width: min(960px, calc(100vw - 1.3rem));
+    }
+
+    .site-header {
+      top: 0.6rem;
+      padding: 0.55rem 0.7rem;
+    }
+
+    .brand-text {
+      font-size: 0.84rem;
+    }
+
+    .main-nav {
+      gap: 0.1rem;
+    }
+
+    .nav-link {
+      font-size: 0.74rem;
+      padding: 0.38rem 0.5rem;
+    }
+
+    .drawer-fab {
+      top: 0.6rem;
+      right: 0.5rem;
+      width: 2.2rem;
+      height: 2.2rem;
+    }
+  }
+</style>

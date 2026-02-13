@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { links, site, visuals } from '../config/site';
+---
+
+<Layout title={`${site.title} | Live`} description="配信ページ">
+  <section class="section-block" style={`background-image: url('${visuals.live}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Live</p>
+      <h1 class="hero-title">配信ページ</h1>
+      <p class="hero-sub">
+        最新の配信枠とアーカイブ導線をこのページへ集約します。現在はダミー状態で、次ステップでAPI連携または埋め込みに差し替えます。
+      </p>
+      <div class="content-placeholder">Live Stream Embed Placeholder</div>
+      <div class="content-card">
+        <p>YouTube: <a href={links.youtube} target="_blank" rel="noreferrer">{links.youtube}</a></p>
+        <p>Twitch: <a href={links.twitch} target="_blank" rel="noreferrer">{links.twitch}</a></p>
+        <p>Kick: <a href={links.kick} target="_blank" rel="noreferrer">{links.kick}</a></p>
+      </div>
+    </div>
+  </section>
+</Layout>

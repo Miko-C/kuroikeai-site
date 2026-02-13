@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { profile, site, visuals } from '../config/site';
+---
+
+<Layout title={`${site.title} | About`} description="黒池璦 KUROIKE AI のプロフィール">
+  <section class="section-block" style={`background-image: url('${visuals.avatar}')`}>
+    <div class="section-content">
+      <p class="eyebrow">About</p>
+      <h1 class="hero-title">{profile.name}</h1>
+      <p class="hero-sub">{profile.bio}</p>
+      <div class="content-card">
+        <h2>プロフィール年表</h2>
+        <ul>
+          {profile.milestones.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  ul {
+    margin: 0.8rem 0 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.4rem;
+    line-height: 1.7;
+  }
+</style>

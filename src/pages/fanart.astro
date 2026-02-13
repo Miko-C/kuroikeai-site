@@ -1,0 +1,67 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, visuals } from '../config/site';
+
+interface FanartItem {
+  id: string;
+  title: string;
+  image: string;
+  alt: string;
+  author: string;
+}
+
+const fanarts: FanartItem[] = [];
+---
+
+<Layout title={`${site.title} | Fanart`} description="ファンアート一覧">
+  <section class="section-block" style={`background-image: url('${visuals.article}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Fanart</p>
+      <h1 class="hero-title">Fanart Gallery</h1>
+      {
+        fanarts.length > 0 ? (
+          <div class="gallery-grid">
+            {fanarts.map((item) => (
+              <article class="content-card">
+                <img src={item.image} alt={item.alt} loading="lazy" />
+                <h2>{item.title}</h2>
+                <p>by {item.author}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div class="content-card empty-fanart">
+            <img src={visuals.dog} alt="犬のイラスト" loading="lazy" />
+            <h2>0件です、ただいま雪の中で準備中</h2>
+            <p>作品が届き次第、ここにカード形式で追加されます。</p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .gallery-grid {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .gallery-grid img {
+    width: 100%;
+    border-radius: 14px;
+    margin-bottom: 0.7rem;
+  }
+
+  .empty-fanart {
+    text-align: center;
+    padding: 1.2rem;
+  }
+
+  .empty-fanart img {
+    width: min(180px, 50vw);
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
+    border: 1px solid rgba(196, 224, 249, 0.45);
+  }
+</style>

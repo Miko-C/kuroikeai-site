@@ -1,0 +1,31 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PlatformLinkCard from '../components/PlatformLinkCard.astro';
+import { platforms } from '../data/platforms';
+import { site, visuals } from '../config/site';
+---
+
+<Layout title={`${site.title} | Links`} description="公式リンク一覧と説明">
+  <section class="section-block" style={`background-image: url('${visuals.post}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Official Links</p>
+      <h1 class="hero-title">Links</h1>
+      <p class="hero-sub">
+        各プラットフォームの役割と最新導線をまとめています。URLは環境変数 `PUBLIC_*_URL` から取得し、未設定時は「URL未設定」と表示します。
+      </p>
+    </div>
+  </section>
+
+  <section class="cards-stack" aria-label="プラットフォームカード一覧">
+    {platforms.map((platform) => (
+      <PlatformLinkCard platform={platform} />
+    ))}
+  </section>
+</Layout>
+
+<style>
+  .cards-stack {
+    display: grid;
+    gap: 1rem;
+  }
+</style>

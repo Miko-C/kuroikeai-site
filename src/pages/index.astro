@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { activitySummary, profile, site, visuals } from '../config/site';
+---
+
+<Layout title={`${site.title} | Home`} description={site.description}>
+  <section id="hero" class="section-block" style={`background-image: url('${visuals.hero}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Official Home</p>
+      <h1 class="hero-title">黒池璦 KUROIKE AI</h1>
+      <p class="hero-sub">
+        雪の静けさと、データセンターの微光を重ねた世界観で活動するバーチャルクリエイター。
+        配信・創作・分析を横断し、日々の記録をこの公式サイトに集約しています。
+      </p>
+    </div>
+  </section>
+
+  <section id="activity" class="section-block" style={`background-image: url('${visuals.activity}')`}>
+    <div class="section-content activity-grid">
+      <div class="content-card">
+        <p class="eyebrow">Activity</p>
+        <h2>活動内容</h2>
+        {activitySummary.map((text) => (
+          <p>{text}</p>
+        ))}
+      </div>
+      <img class="float-image" src={visuals.cat} alt="黒猫のビジュアル" loading="lazy" />
+    </div>
+  </section>
+
+  <section id="latest-live" class="section-block" style={`background-image: url('${visuals.live}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Latest Live</p>
+      <h2>最新の配信</h2>
+      <p class="hero-sub">
+        YouTube埋め込みは次ステップで接続予定です。ここには最新ライブのサムネイル・タイトル・開始時刻が入る想定です。
+      </p>
+      <div class="content-placeholder">YouTube Embed Placeholder</div>
+    </div>
+  </section>
+
+  <section id="latest-post" class="section-block" style={`background-image: url('${visuals.post}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Latest Post</p>
+      <h2>最新のポスト</h2>
+      <p class="hero-sub">
+        Xタイムライン埋め込みは次ステップで接続予定です。告知や近況の最新投稿をここに表示します。
+      </p>
+      <div class="content-placeholder">X Timeline Placeholder</div>
+    </div>
+  </section>
+
+  <section id="latest-article" class="section-block" style={`background-image: url('${visuals.article}')`}>
+    <div class="section-content">
+      <p class="eyebrow">Latest Article</p>
+      <h2>最新記事</h2>
+      <p class="hero-sub">
+        note埋め込みは次ステップで接続予定です。調査・分析・考察や日常の記録記事をここに掲載します。
+      </p>
+      <div class="content-placeholder">note Card Placeholder</div>
+      <p class="eyebrow">Profile: {profile.name}</p>
+    </div>
+  </section>
+</Layout>

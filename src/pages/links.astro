@@ -21,12 +21,6 @@ const accentDog = '/visuals/dog-handsup.png';
         各プラットフォームの役割と最新導線をまとめています。
       </p>
 
-      <div class="cards-stack" aria-label="プラットフォームカード一覧">
-        {platforms.map((platform) => (
-          <PlatformLinkCard platform={platform} />
-        ))}
-      </div>
-
       <article class="platform-card contact-card" aria-label="お問い合わせ">
         <div class="card-head">
           <h2>お問い合わせ</h2>
@@ -41,6 +35,12 @@ const accentDog = '/visuals/dog-handsup.png';
           </p>
         </div>
       </article>
+
+      <div class="cards-stack" aria-label="プラットフォームカード一覧">
+        {platforms.map((platform) => (
+          <PlatformLinkCard platform={platform} />
+        ))}
+      </div>
     </div>
   </section>
 </Layout>

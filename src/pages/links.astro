@@ -18,7 +18,7 @@ const accentDog = '/visuals/dog-handsup.png';
       <p class="eyebrow">Official Links</p>
       <h1>Links</h1>
       <p class="lead">
-        各プラットフォームの役割と最新導線をまとめています。URLは環境変数 `PUBLIC_*_URL` から取得し、未設定時は「URL未設定」と表示します。
+        各プラットフォームの役割と最新導線をまとめています。
       </p>
 
       <div class="cards-stack" aria-label="プラットフォームカード一覧">
@@ -26,6 +26,21 @@ const accentDog = '/visuals/dog-handsup.png';
           <PlatformLinkCard platform={platform} />
         ))}
       </div>
+
+      <article class="platform-card contact-card" aria-label="お問い合わせ">
+        <div class="card-head">
+          <h2>お問い合わせ</h2>
+          <span class="state-badge is-ok">連絡先</span>
+        </div>
+
+        <div class="description-list">
+          <p>お問い合わせ（お仕事・コラボ・案件等）は下記の連絡先にて承っております。</p>
+          <p>
+            連絡先：
+            <a class="contact-mail" href="mailto:kuroikeai.contact@gmail.com">kuroikeai.contact@gmail.com</a>
+          </p>
+        </div>
+      </article>
     </div>
   </section>
 </Layout>
@@ -98,6 +113,76 @@ const accentDog = '/visuals/dog-handsup.png';
     margin-top: 0.3rem;
     display: grid;
     gap: 0.9rem;
+  }
+
+  .platform-card {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(196, 220, 244, 0.34);
+    background: rgba(10, 16, 24, 0.34);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34), 0 0 12px rgba(137, 234, 255, 0.1);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .contact-card {
+    margin-top: 0.35rem;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+  }
+
+  .state-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 1.65rem;
+    padding: 0 0.65rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    border: 1px solid transparent;
+  }
+
+  .state-badge.is-ok {
+    color: #ddf8ef;
+    border-color: rgba(126, 232, 181, 0.45);
+    background: rgba(42, 123, 93, 0.25);
+  }
+
+  .description-list {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .description-list p {
+    margin: 0;
+    line-height: 1.75;
+    color: #deebf9;
+    font-size: 0.96rem;
+  }
+
+  .contact-mail {
+    color: #9dc2e2;
+    font-size: 0.96rem;
+    word-break: break-all;
+    text-decoration: none;
+  }
+
+  .contact-mail:hover {
+    color: #c3def3;
   }
 
   @media (max-width: 720px) {
